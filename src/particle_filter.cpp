@@ -48,6 +48,8 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     
     particles.push_back(particle);
   }
+
+  is_initialized = true;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], 
