@@ -47,6 +47,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     particle.weight = 1.0;
     
     particles.push_back(particle);
+    weights.push_back(particle.weight);
   }
 
   is_initialized = true;
