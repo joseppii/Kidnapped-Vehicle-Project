@@ -93,7 +93,19 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
    *   probably find it useful to implement this method and use it as a helper 
    *   during the updateWeights phase.
    */
+  int pred_id = -1;
+  double min_distance = numeric_limits<double>::max();
+  for (LandmarkObs obs: observations) { 
+    for (LandmarkObs pred: predicted) {
 
+      double sqr_diff = dist(obs.x,obs.y,pred.x,pred.y);
+      if ( (sqr_diff) < min_distance) {
+        min_distance = sqr_diff;
+        pred_id = pred.id;
+      }
+    }
+    obs.id = pred_id;
+  }
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
@@ -112,7 +124,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
-
+  
 }
 
 void ParticleFilter::resample() {
