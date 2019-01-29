@@ -174,8 +174,7 @@ void ParticleFilter::resample() {
    */
   std::default_random_engine gen;
 
-  vector<double>weights;
-  double max_weight = *max_element(weights.begin(),weights.end());
+  double max_weight = 2.0 * *max_element(weights.begin(),weights.end());
 
   uniform_real_distribution<double> dist_weight(0.0, max_weight);
   uniform_int_distribution<int> dist_part(0, num_particles-1);
