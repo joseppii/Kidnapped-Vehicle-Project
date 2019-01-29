@@ -125,7 +125,44 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
-  
+  double normalized_weight = 0.0;
+
+  for (Particle p : particles) {
+    vector<LandmarkObs> trans_obs;
+    for (size_t i=0; i <observations.size(); ++i) { 
+      LandmarkObs trans_ob;
+      trans_ob.id = i;
+      trans_ob.x = p.x + (cos(p.theta +observations[i].x) - sin(p.theta) * observations[i].y);
+      trans_ob.x = p.x + (sin(p.theta +observations[i].x) + cos(p.theta) * observations[i].y);
+      trans_obs.push_back(trans_ob);
+    }
+
+    vector<LandmarkObs> filtered_landmarks;
+    for (size_t j=0;j<map_landmarks.landmark_list.size();++j) {
+      Map::single_landmark_s current_landmark = map_landmarks.landmark_list[j];
+      if ((fabs(p.x - current_landmark.x_f) <= sensor_range) && (fabs(p.y - current_landmark.y_f) <= sensor_range) ){
+        filtered_landmarks.push_back(LandmarkObs {current_landmark.id_i, current_landmark.x_f, current_landmark.y_f});
+      }
+    }
+
+    dataAssociation(filtered_landmarks, trans_obs);
+    double gauss_norm, exponent;
+    gauss_norm = 1 / (2 * M_PI *std_landmark[0]*std_landmark[1]);
+
+    for (size_t k=0; k <trans_obs.size(); ++k) { 
+      for (size_t l=0; l <filtered_landmarks.size(); ++l) { 
+        if (trans_obs[k].id == filtered_landmarks[l].id) {
+          exponent = exp (-1 *((pow((trans_obs[k].x-filtered_landmarks[l].x), 2)/(2 * pow(std_landmark[0],2))) + (pow((trans_obs[k].y-filtered_landmarks[l].y), 2)/(2 * pow(std_landmark[1],2)))));
+          p.weight *= gauss_norm * exponent;
+        }
+      }
+    }
+  normalized_weight += p.weight;
+  }
+  for (size_t m=0; m<particles.size(); ++m) {
+    particles[m].weight = particles[m].weight/normalized_weight;
+    weights[m] = particles[m].weight;
+  }
 }
 
 void ParticleFilter::resample() {
