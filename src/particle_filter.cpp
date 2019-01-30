@@ -69,7 +69,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
   normal_distribution<double> dist_theta(0, std_pos[2]);
 
   for (Particle p : particles) {
-    if (fabs(yaw_rate > 0.001)) {
+    if (fabs(yaw_rate > 0.0001)) {
       p.x += velocity / yaw_rate * (sin(p.theta + yaw_rate * delta_t) - sin(p.theta));
       p.y += velocity / yaw_rate * (cos(p.theta) - cos(p.theta + yaw_rate*delta_t));
       p.theta += yaw_rate * delta_t;
@@ -132,8 +132,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     for (size_t i=0; i <observations.size(); ++i) { 
       LandmarkObs trans_ob;
       trans_ob.id = i;
-      trans_ob.x = p.x + (cos(p.theta +observations[i].x) - sin(p.theta) * observations[i].y);
-      trans_ob.x = p.x + (sin(p.theta +observations[i].x) + cos(p.theta) * observations[i].y);
+      trans_ob.x = p.x + (cos(p.theta) +observations[i].x) - (sin(p.theta) * observations[i].y);
+      trans_ob.y = p.y + (sin(p.theta) +observations[i].x) + (cos(p.theta) * observations[i].y);
       trans_obs.push_back(trans_ob);
     }
 
@@ -162,7 +162,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   for (size_t m=0; m<particles.size(); ++m) {
     particles[m].weight = particles[m].weight/normalized_weight;
     weights[m] = particles[m].weight;
-  }
+  }  
 }
 
 void ParticleFilter::resample() {
@@ -172,10 +172,10 @@ void ParticleFilter::resample() {
    * NOTE: You may find std::discrete_distribution helpful here.
    *   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
    */
+  
   std::default_random_engine gen;
 
-  vector<double>weights;
-  double max_weight = *max_element(weights.begin(),weights.end());
+  double max_weight = 2.0 * *max_element(weights.begin(),weights.end());
 
   uniform_real_distribution<double> dist_weight(0.0, max_weight);
   uniform_int_distribution<int> dist_part(0, num_particles-1);
@@ -185,7 +185,7 @@ void ParticleFilter::resample() {
 
   vector<Particle> resampled_particles;
   for (int i = 0; i <num_particles; ++i) {
-    beta += 2.0 * dist_weight(gen);
+    beta += dist_weight(gen);
     while (beta > weights[index]) {
       beta-= weights[index];
       index = (index+1) % num_particles;
