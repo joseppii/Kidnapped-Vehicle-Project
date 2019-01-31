@@ -31,7 +31,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
    * NOTE: Consult particle_filter.h for more information about this method 
    *   (and others in this file).
    */
-  num_particles = 100;  // TODO: Set the number of particles
+  num_particles = 30;  // TODO: Set the number of particles
   std::default_random_engine gen;
 
   normal_distribution<double> dist_x(x, std[0]);
@@ -64,24 +64,29 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
    */
   std::default_random_engine gen;
 
-  normal_distribution<double> dist_x(0, std_pos[0]);
-  normal_distribution<double> dist_y(0, std_pos[1]);
-  normal_distribution<double> dist_theta(0, std_pos[2]);
-
-  for (Particle p : particles) {
-    if (fabs(yaw_rate > 0.0001)) {
-      p.x += velocity / yaw_rate * (sin(p.theta + yaw_rate * delta_t) - sin(p.theta));
-      p.y += velocity / yaw_rate * (cos(p.theta) - cos(p.theta + yaw_rate*delta_t));
-      p.theta += yaw_rate * delta_t;
+  for (Particle& p : particles) {
+    double px;
+	  double py;
+    double ptheta;    
+    
+    if (fabs(yaw_rate) > 0.0001) {
+      px = p.x + velocity / yaw_rate * (sin(p.theta + yaw_rate * delta_t) - sin(p.theta));
+      py = p.y + velocity / yaw_rate * (cos(p.theta) - cos(p.theta + yaw_rate*delta_t));
+      ptheta = p.theta + yaw_rate * delta_t;
     } else {
-      p.x += velocity * delta_t * cos(p.theta);
-      p.y += velocity * delta_t * sin(p.theta);
+      px = p.x + velocity * delta_t * cos(p.theta);
+      py = p.y+ velocity * delta_t * sin(p.theta);
+      ptheta = p.theta + yaw_rate;
     }
     
-    p.x += dist_x(gen);
-    p.y += dist_y(gen);
-    p.theta += dist_theta(gen);
-  }
+    normal_distribution<double> dist_x(px, std_pos[0]);
+    normal_distribution<double> dist_y(py, std_pos[1]);
+    normal_distribution<double> dist_theta(ptheta, std_pos[2]);
+    
+    p.x = dist_x(gen);
+    p.y = dist_y(gen);
+    p.theta = dist_theta(gen);
+  } 
 }
 
 void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted, 
@@ -127,7 +132,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    */
   double normalized_weight = 0.0;
 
-  for (Particle p : particles) {
+  for (Particle& p : particles) {
     vector<LandmarkObs> trans_obs;
     for (size_t i=0; i <observations.size(); ++i) { 
       LandmarkObs trans_ob;
