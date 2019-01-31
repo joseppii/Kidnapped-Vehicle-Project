@@ -100,9 +100,10 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
    *   during the updateWeights phase.
    */
   int pred_id = -1;
-  double min_distance = numeric_limits<double>::max();
-  for (LandmarkObs obs: observations) { 
-    for (LandmarkObs pred: predicted) {
+  
+  for (LandmarkObs& obs: observations) { 
+    double min_distance = numeric_limits<double>::max();
+    for (LandmarkObs& pred: predicted) {
 
       double sqr_diff = dist(obs.x,obs.y,pred.x,pred.y);
       if ( (sqr_diff) < min_distance) {
