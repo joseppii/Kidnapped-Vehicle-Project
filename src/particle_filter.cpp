@@ -135,11 +135,11 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
   for (Particle& p : particles) {
     vector<LandmarkObs> trans_obs;
-    for (size_t i=0; i <observations.size(); ++i) { 
+    for (size_t i=0; i<observations.size(); i++) {
       LandmarkObs trans_ob;
       trans_ob.id = i;
-      trans_ob.x = p.x + (cos(p.theta) +observations[i].x) - (sin(p.theta) * observations[i].y);
-      trans_ob.y = p.y + (sin(p.theta) +observations[i].x) + (cos(p.theta) * observations[i].y);
+      trans_ob.x = p.x + (cos(p.theta) * observations[i].x) - (sin(p.theta) * observations[i].y);
+      trans_ob.y = p.y + (sin(p.theta) * observations[i].x) + (cos(p.theta) * observations[i].y);
       trans_obs.push_back(trans_ob);
     }
 
@@ -152,6 +152,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     }
 
     dataAssociation(filtered_landmarks, trans_obs);
+    p.weight = 1.0;
+
     double gauss_norm, exponent;
     gauss_norm = 1 / (2 * M_PI *std_landmark[0]*std_landmark[1]);
 
@@ -165,6 +167,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     }
   normalized_weight += p.weight;
   }
+  
   for (size_t m=0; m<particles.size(); ++m) {
     particles[m].weight = particles[m].weight/normalized_weight;
     weights[m] = particles[m].weight;
